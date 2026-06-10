@@ -1,11 +1,11 @@
 name: check-tickets
 on:
   schedule:
-    - cron: "*/15 * * * *"   # 每 15 分鐘（UTC）；未來日期 TDX 一天只刷新 3 次，故已足夠
-  workflow_dispatch: {}        # 允許手動觸發測試
+    - cron: "*/15 * * * *"   # every 15 min (UTC); future-date TDX refreshes only 3x/day, so this is plenty
+  workflow_dispatch: {}        # allow manual trigger
 
 permissions:
-  contents: write              # 允許 commit 回寫 state.json
+  contents: write              # allow committing state.json back
 
 concurrency:
   group: check-tickets
