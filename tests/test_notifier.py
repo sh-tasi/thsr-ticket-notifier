@@ -1,18 +1,22 @@
 from unittest.mock import MagicMock, patch
-from thsr_notifier.notifier import build_message, build_deeplink, Notifier
+from thsr_notifier.notifier import build_digest, build_deeplink, Notifier
 from thsr_notifier.models import Watch, AvailableTrain, AVAILABLE, LIMITED
 
 def _w():
     return Watch(label="回家", origin_id="1000", destination_id="1070",
                  date="2026-06-20", seat_class="standard")
 
-def test_build_message_contains_key_info():
-    t = AvailableTrain("0641", "18:30", "20:15", AVAILABLE)
-    msg = build_message(_w(), t)
+def test_build_digest_lists_all_trains():
+    trains = [
+        AvailableTrain("0641", "18:30", "20:15", AVAILABLE),
+        AvailableTrain("0643", "19:00", "20:45", LIMITED),
+    ]
+    msg = build_digest(_w(), trains)
     assert "回家" in msg
-    assert "0641" in msg
-    assert "18:30" in msg
     assert "2026-06-20" in msg
+    assert "0641" in msg and "18:30" in msg
+    assert "0643" in msg and "19:00" in msg
+    assert msg.count("・") == 2  # 兩班車都列在同一則
 
 def test_build_deeplink_is_url():
     link = build_deeplink(_w(), AvailableTrain("0641", "18:30", "20:15", AVAILABLE))
@@ -28,3 +32,14 @@ def test_send_calls_telegram(mock_post):
     assert "TOK" in args[0]
     assert kwargs["data"]["chat_id"] == "123"
     assert kwargs["data"]["text"] == "hello"
+
+@patch("thsr_notifier.notifier.requests.post")
+def test_notify_many_sends_single_message(mock_post):
+    m = MagicMock(); m.raise_for_status.return_value = None
+    mock_post.return_value = m
+    n = Notifier(token="TOK", chat_id="123")
+    n.notify_many(_w(), [
+        AvailableTrain("0641", "18:30", "20:15", AVAILABLE),
+        AvailableTrain("0643", "19:00", "20:45", LIMITED),
+    ])
+    assert mock_post.call_count == 1  # 多班車只發一則

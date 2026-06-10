@@ -33,16 +33,16 @@ def run(watches, client, notifier, state_path, today=None) -> None:
             available = filter_available(w, trains)
             available_nos = {t.train_no for t in available}
             previous = state.previously_notified(w)
+            new_trains = [t for t in available if t.train_no not in previous]
             notified_ok = set()
-            for t in available:
-                if t.train_no in previous:
-                    continue
+            if new_trains:
                 try:
-                    notifier.notify(w, t)
-                    notified_ok.add(t.train_no)
-                    log.info("通知 %s 車次 %s", w.label, t.train_no)
+                    notifier.notify_many(w, new_trains)
+                    notified_ok = {t.train_no for t in new_trains}
+                    log.info("通知 %s：%d 班有票（%s）", w.label, len(new_trains),
+                             ", ".join(t.train_no for t in new_trains))
                 except Exception:
-                    log.exception("通知失敗 %s 車次 %s", w.label, t.train_no)
+                    log.exception("通知失敗 %s（%d 班，下輪重試）", w.label, len(new_trains))
             # 只記錄「仍有票且先前已通知」+「本輪成功通知」；通知失敗者不入庫，下輪可重試
             state.set_notified(w, (available_nos & previous) | notified_ok)
         except Exception:

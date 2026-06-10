@@ -25,12 +25,12 @@ def _client(seat_status="O"):  # O=尚有座位, L=座位有限, X=已售完
 def test_run_notifies_when_available(tmp_path):
     notifier = MagicMock()
     run([_watch()], _client(), notifier, str(tmp_path / "state.json"), today=TODAY)
-    assert notifier.notify.call_count == 1
+    assert notifier.notify_many.call_count == 1
 
 def test_run_no_notify_when_full(tmp_path):
     notifier = MagicMock()
     run([_watch()], _client("X"), notifier, str(tmp_path / "state.json"), today=TODAY)
-    assert notifier.notify.call_count == 0
+    assert notifier.notify_many.call_count == 0
 
 def test_run_continues_on_single_watch_error(tmp_path):
     client = _client()
@@ -38,13 +38,13 @@ def test_run_continues_on_single_watch_error(tmp_path):
     client.fetch_timetable.side_effect = [RuntimeError("boom"), good_timetable]
     notifier = MagicMock()
     run([_watch(), _watch()], client, notifier, str(tmp_path / "state.json"), today=TODAY)
-    assert notifier.notify.call_count == 1  # 第一筆爆掉、第二筆仍通知
+    assert notifier.notify_many.call_count == 1  # 第一筆爆掉、第二筆仍通知
 
 def test_run_skips_out_of_window_date(tmp_path):
     client = _client()
     notifier = MagicMock()
     run([_watch(date="2020-01-01")], client, notifier, str(tmp_path / "state.json"), today=TODAY)
-    assert notifier.notify.call_count == 0
+    assert notifier.notify_many.call_count == 0
     client.fetch_timetable.assert_not_called()
 
 def test_run_no_renotify_on_second_run(tmp_path):
@@ -52,14 +52,14 @@ def test_run_no_renotify_on_second_run(tmp_path):
     notifier = MagicMock()
     run([_watch()], _client(), notifier, path, today=TODAY)
     run([_watch()], _client(), notifier, path, today=TODAY)
-    assert notifier.notify.call_count == 1  # 只有第一輪通知
+    assert notifier.notify_many.call_count == 1  # 只有第一輪通知
 
 def test_run_retries_after_notify_failure(tmp_path):
     path = str(tmp_path / "state.json")
     failing = MagicMock()
-    failing.notify.side_effect = RuntimeError("telegram down")
+    failing.notify_many.side_effect = RuntimeError("telegram down")
     run([_watch()], _client(), failing, path, today=TODAY)
-    assert failing.notify.call_count == 1
+    assert failing.notify_many.call_count == 1
     ok = MagicMock()  # 下一輪用正常 notifier，應重試（未被去重，因前次失敗未入庫）
     run([_watch()], _client(), ok, path, today=TODAY)
-    assert ok.notify.call_count == 1
+    assert ok.notify_many.call_count == 1
