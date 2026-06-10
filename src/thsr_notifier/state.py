@@ -1,6 +1,6 @@
 import json
 import os
-from .models import Watch, AvailableTrain
+from .models import Watch
 
 class State:
     def __init__(self, path: str):
@@ -19,12 +19,11 @@ class State:
     def _key(self, w: Watch) -> str:
         return f"{w.label}|{w.date}|{w.origin_id}|{w.destination_id}|{w.seat_class}"
 
-    def diff(self, watch: Watch, available: list[AvailableTrain]) -> list[AvailableTrain]:
-        key = self._key(watch)
-        previous = set(self._data.get(key, []))
-        current = {t.train_no for t in available}
-        self._data[key] = sorted(current)
-        return [t for t in available if t.train_no not in previous]
+    def previously_notified(self, watch: Watch) -> set[str]:
+        return set(self._data.get(self._key(watch), []))
+
+    def set_notified(self, watch: Watch, train_nos: set[str]) -> None:
+        self._data[self._key(watch)] = sorted(train_nos)
 
     def save(self) -> None:
         with open(self._path, "w", encoding="utf-8") as f:
