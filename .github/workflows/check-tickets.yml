@@ -26,7 +26,7 @@ jobs:
           TDX_CLIENT_SECRET: ${{ secrets.TDX_CLIENT_SECRET }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: PYTHONPATH=src python -m thsr_notifier.main
+        run: python run.py
       - name: Commit updated state
         run: |
           git config user.name "github-actions[bot]"

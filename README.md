@@ -14,9 +14,12 @@
 ```bash
 pip install -r requirements.txt
 pytest -q
-PYTHONPATH=src TDX_CLIENT_ID=.. TDX_CLIENT_SECRET=.. \
-  TELEGRAM_BOT_TOKEN=.. TELEGRAM_CHAT_ID=.. python -m thsr_notifier.main
 ```
+跑實際查詢：在專案根目錄建立 `.env`（4 行 `TDX_CLIENT_ID`/`TDX_CLIENT_SECRET`/`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`），然後：
+```bash
+python run.py
+```
+`.env` 已被 `.gitignore` 排除，不會上傳；CI 上沒有 `.env`，改用 GitHub Secrets。
 
 ## 限制
 - TDX 餘位資料涵蓋今天起 27 天內；超出範圍的日期不會有資料。
