@@ -1,0 +1,10 @@
+# 監控清單：編輯後 push 即生效
+watches:
+  - label: "回家範例"
+    origin: 台北          # 站名：南港/台北/板橋/桃園/新竹/苗栗/台中/彰化/雲林/嘉義/台南/左營
+    destination: 左營
+    date: 2026-06-20      # YYYY-MM-DD（須在今天起 27 天內 TDX 才有餘位資料）
+    time_from: "18:00"    # 可選；不填=整天
+    time_to: "21:00"      # 可選
+    trains: []            # 可選；指定車次如 [641]；空=不限
+    seat_class: standard  # standard 或 business
