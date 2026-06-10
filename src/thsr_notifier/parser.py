@@ -1,9 +1,10 @@
 from .models import AvailableTrain, AVAILABLE, LIMITED, FULL
 
+# TDX 座位狀態代碼：O=尚有座位, L=座位有限, X=已售完
 _STATUS_MAP = {
-    "尚有座位": AVAILABLE,
-    "座位有限": LIMITED,
-    "已售完": FULL,
+    "O": AVAILABLE,
+    "L": LIMITED,
+    "X": FULL,
 }
 
 def _normalize_status(raw: str) -> str:

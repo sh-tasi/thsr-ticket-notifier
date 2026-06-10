@@ -1,12 +1,19 @@
 """一次性 TDX 連線煙霧測試 / 抓真實回應。
 
-用法（PowerShell，在專案根目錄）：
-    $env:TDX_CLIENT_ID="你的id"; $env:TDX_CLIENT_SECRET="你的secret"; python scripts/capture.py
-可選指定起訖與日期：
-    python scripts/capture.py 台北 左營 2026-06-11
+金鑰來源（擇一）：
+  A. 環境變數：在同一個 PowerShell 視窗先設定，再跑本腳本
+       $env:TDX_CLIENT_ID="你的id"
+       $env:TDX_CLIENT_SECRET="你的secret"
+       python scripts/capture.py
+  B. .env 檔（推薦，設一次就好）：在專案根目錄建立 .env，內容兩行：
+       TDX_CLIENT_ID=你的id
+       TDX_CLIENT_SECRET=你的secret
+     然後直接：python scripts/capture.py
 
-會把完整回應存到 tests/fixtures/，並印出結構供核對欄位名。
-（不會印出你的金鑰。）
+可選指定起訖與日期：
+    python scripts/capture.py 台北 左營 2026-06-13
+
+會把完整回應存到 tests/fixtures/，並印出結構供核對欄位名。（不會印出你的金鑰。）
 """
 import json
 import os
@@ -14,6 +21,41 @@ import sys
 from datetime import date
 
 sys.path.insert(0, "src")
+
+
+def _load_dotenv(path=".env"):
+    """極簡 .env 讀取：KEY=VALUE，每行一組。不覆蓋已存在的環境變數。"""
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, val = line.split("=", 1)
+            os.environ.setdefault(key.strip(), val.strip().strip('"').strip("'"))
+
+
+_load_dotenv()
+
+_required = ["TDX_CLIENT_ID", "TDX_CLIENT_SECRET"]
+_missing = [k for k in _required if not os.environ.get(k)]
+if _missing:
+    print("⚠ 缺少環境變數：" + ", ".join(_missing))
+    print("目前偵測狀態（不顯示內容）：")
+    for k in _required:
+        print(f"  {k} = {'已設定 ✓' if os.environ.get(k) else '未設定 ✗'}")
+    print()
+    print("解法二選一：")
+    print("  A. 同一個 PowerShell 視窗先設定再跑：")
+    print('       $env:TDX_CLIENT_ID="你的id"')
+    print('       $env:TDX_CLIENT_SECRET="你的secret"')
+    print("       python scripts/capture.py")
+    print("  B. 在專案根目錄建立 .env 檔（兩行），再跑 python scripts/capture.py：")
+    print("       TDX_CLIENT_ID=你的id")
+    print("       TDX_CLIENT_SECRET=你的secret")
+    sys.exit(1)
+
 from thsr_notifier.tdx_client import TdxClient
 from thsr_notifier.stations import to_station_id
 

@@ -10,6 +10,7 @@ from .matcher import filter_available
 from .state import State
 from .notifier import Notifier
 from .dates import is_in_window
+from .dotenv import load_dotenv
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("thsr_notifier")
@@ -49,6 +50,7 @@ def run(watches, client, notifier, state_path, today=None) -> None:
     state.save()
 
 def main() -> int:
+    load_dotenv()  # 本機有 .env 就載入；CI 無 .env 為 no-op，用 Secrets
     watches = load_watches(WATCHES_PATH)
     client = TdxClient(os.environ["TDX_CLIENT_ID"], os.environ["TDX_CLIENT_SECRET"])
     notifier = Notifier(os.environ["TELEGRAM_BOT_TOKEN"], os.environ["TELEGRAM_CHAT_ID"])

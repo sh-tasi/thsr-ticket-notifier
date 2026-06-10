@@ -10,8 +10,8 @@ TIMETABLE = [
      "DestinationStopTime": {"ArrivalTime": "20:45"}},
 ]
 SEAT = [
-    {"TrainNo": "0641", "StandardSeatStatus": "尚有座位", "BusinessSeatStatus": "已售完"},
-    {"TrainNo": "0643", "StandardSeatStatus": "已售完", "BusinessSeatStatus": "座位有限"},
+    {"TrainNo": "0641", "StandardSeatStatus": "O", "BusinessSeatStatus": "X"},
+    {"TrainNo": "0643", "StandardSeatStatus": "X", "BusinessSeatStatus": "L"},
 ]
 
 def test_join_standard_class():

@@ -10,7 +10,7 @@ def _watch(date="2026-06-20"):
                  date=date, time_from="18:00", time_to="21:00",
                  seat_class="standard")
 
-def _client(seat_status="尚有座位"):
+def _client(seat_status="O"):  # O=尚有座位, L=座位有限, X=已售完
     client = MagicMock()
     client.fetch_timetable.return_value = [
         {"DailyTrainInfo": {"TrainNo": "0641"},
@@ -18,7 +18,7 @@ def _client(seat_status="尚有座位"):
          "DestinationStopTime": {"ArrivalTime": "20:15"}},
     ]
     client.fetch_seat_status.return_value = [
-        {"TrainNo": "0641", "StandardSeatStatus": seat_status, "BusinessSeatStatus": "已售完"},
+        {"TrainNo": "0641", "StandardSeatStatus": seat_status, "BusinessSeatStatus": "X"},
     ]
     return client
 
@@ -29,7 +29,7 @@ def test_run_notifies_when_available(tmp_path):
 
 def test_run_no_notify_when_full(tmp_path):
     notifier = MagicMock()
-    run([_watch()], _client("已售完"), notifier, str(tmp_path / "state.json"), today=TODAY)
+    run([_watch()], _client("X"), notifier, str(tmp_path / "state.json"), today=TODAY)
     assert notifier.notify.call_count == 0
 
 def test_run_continues_on_single_watch_error(tmp_path):
