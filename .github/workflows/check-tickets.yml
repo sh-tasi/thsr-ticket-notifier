@@ -1,0 +1,36 @@
+name: check-tickets
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # 每 15 分鐘（UTC）；未來日期 TDX 一天只刷新 3 次，故已足夠
+  workflow_dispatch: {}        # 允許手動觸發測試
+
+permissions:
+  contents: write              # 允許 commit 回寫 state.json
+
+concurrency:
+  group: check-tickets
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Run checker
+        env:
+          TDX_CLIENT_ID: ${{ secrets.TDX_CLIENT_ID }}
+          TDX_CLIENT_SECRET: ${{ secrets.TDX_CLIENT_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: PYTHONPATH=src python -m thsr_notifier.main
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          git diff --staged --quiet || git commit -m "chore: update state [skip ci]"
+          git push
